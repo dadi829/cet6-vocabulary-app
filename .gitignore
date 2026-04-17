@@ -1,0 +1,12 @@
+# Android Studio / Trae ÅäÖÃÎÄ¼ş
+.idea/
+*.iml
+local.properties
+.gradle/
+build/
+app/build/
+*.apk
+*.log
+/captures/
+/proguard/
+.DS_Store
