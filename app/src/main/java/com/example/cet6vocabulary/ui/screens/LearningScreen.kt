@@ -34,13 +34,27 @@ import androidx.navigation.NavHostController
 import com.example.cet6vocabulary.data.entities.Word
 import com.example.cet6vocabulary.ui.components.WordCard
 import com.example.cet6vocabulary.viewmodel.WordViewModel
-import java.util.Random
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun LearningScreen(navController: NavHostController, viewModel: WordViewModel) {
-    var currentWord by remember { mutableStateOf(getSampleWord()) }
+    val reviewWords by viewModel.reviewWords.collectAsState()
+    var currentWordIndex by remember { mutableStateOf(0) }
     var offsetX by remember { mutableStateOf(0f) }
     var isCardVisible by remember { mutableStateOf(true) }
+
+    // 从数据库获取当前单词
+    val currentWord = if (reviewWords.isNotEmpty()) {
+        reviewWords[currentWordIndex % reviewWords.size]
+    } else {
+        Word(
+            word = "No words available",
+            phonetic = "",
+            partOfSpeech = "",
+            definition = "Please wait for vocabulary to load",
+            example = ""
+        )
+    }
 
     val scale by animateFloatAsState(
         targetValue = if (isCardVisible) 1f else 0.8f,
@@ -60,7 +74,7 @@ fun LearningScreen(navController: NavHostController, viewModel: WordViewModel) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Learn New Words",
+            text = "Learn New Words (${reviewWords.size} total)",
             fontSize = 24.sp,
             fontWeight = MaterialTheme.typography.titleLarge.fontWeight,
             modifier = Modifier.padding(bottom = 32.dp)
@@ -88,7 +102,8 @@ fun LearningScreen(navController: NavHostController, viewModel: WordViewModel) {
             Button(
                 onClick = {
                     viewModel.markWordAsMastered(currentWord)
-                    currentWord = getSampleWord()
+                    currentWordIndex++
+                    isCardVisible = true
                 },
                 modifier = Modifier.size(120.dp, 48.dp)
             ) {
@@ -97,7 +112,8 @@ fun LearningScreen(navController: NavHostController, viewModel: WordViewModel) {
             Button(
                 onClick = {
                     viewModel.markWordAsNotMastered(currentWord)
-                    currentWord = getSampleWord()
+                    currentWordIndex++
+                    isCardVisible = true
                 },
                 modifier = Modifier.size(120.dp, 48.dp)
             ) {
@@ -105,45 +121,4 @@ fun LearningScreen(navController: NavHostController, viewModel: WordViewModel) {
             }
         }
     }
-}
-
-private fun getSampleWord(): Word {
-    val words = listOf(
-        Word(
-            word = "abandon",
-            phonetic = "/əˈbændən/",
-            partOfSpeech = "verb",
-            definition = "to leave a place, thing, or person forever",
-            example = "The crew abandoned the ship after it struck an iceberg."
-        ),
-        Word(
-            word = "abide",
-            phonetic = "/əˈbaɪd/",
-            partOfSpeech = "verb",
-            definition = "to accept or act in accordance with a rule, decision, or recommendation",
-            example = "We must abide by the rules of the game."
-        ),
-        Word(
-            word = "abound",
-            phonetic = "/əˈbaʊnd/",
-            partOfSpeech = "verb",
-            definition = "to exist in large numbers or amounts",
-            example = "The forest abounds with wildlife."
-        ),
-        Word(
-            word = "abrupt",
-            phonetic = "/əˈbrʌpt/",
-            partOfSpeech = "adjective",
-            definition = "sudden and unexpected",
-            example = "The meeting came to an abrupt end."
-        ),
-        Word(
-            word = "absurd",
-            phonetic = "/əbˈsɜːrd/",
-            partOfSpeech = "adjective",
-            definition = "wildly unreasonable, illogical, or inappropriate",
-            example = "It's absurd to think that pigs can fly."
-        )
-    )
-    return words[Random().nextInt(words.size)]
 }

@@ -14,6 +14,9 @@ interface WordDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWord(word: Word)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWords(words: List<Word>)
+
     @Update
     suspend fun updateWord(word: Word)
 
@@ -40,4 +43,7 @@ interface WordDao {
 
     @Query("UPDATE words SET isInVocabularyList = :isInVocabularyList WHERE id = :wordId")
     suspend fun updateVocabularyListStatus(wordId: Int, isInVocabularyList: Boolean)
+
+    @Query("SELECT COUNT(*) FROM words")
+    suspend fun getWordCount(): Int
 }

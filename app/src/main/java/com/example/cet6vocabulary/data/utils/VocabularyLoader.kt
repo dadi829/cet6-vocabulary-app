@@ -9,7 +9,21 @@ import java.io.InputStreamReader
 
 class VocabularyLoader(private val context: Context) {
     
+    private val jsonParser = YoudaoJSONParser(context)
+    
     suspend fun loadVocabularyFromAssets(fileName: String): Result<List<Word>> = withContext(Dispatchers.IO) {
+        try {
+            if (fileName.endsWith(".json")) {
+                loadVocabularyFromJSON(fileName)
+            } else {
+                loadVocabularyFromCSV(fileName)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    private suspend fun loadVocabularyFromCSV(fileName: String): Result<List<Word>> = withContext(Dispatchers.IO) {
         try {
             val words = mutableListOf<Word>()
             val inputStream = context.assets.open(fileName)
@@ -44,6 +58,10 @@ class VocabularyLoader(private val context: Context) {
         }
     }
     
+    private suspend fun loadVocabularyFromJSON(fileName: String): Result<List<Word>> = withContext(Dispatchers.IO) {
+        jsonParser.parseYoudaoJSON(fileName)
+    }
+    
     suspend fun parseCSVLine(line: String): Word? = withContext(Dispatchers.Default) {
         try {
             val parts = line.split(",")
@@ -69,10 +87,9 @@ class VocabularyLoader(private val context: Context) {
     }
     
     suspend fun validateVocabularyData(words: List<Word>): Result<List<Word>> = withContext(Dispatchers.Default) {
-        val validWords = words.filter { word ->
-            word.word.isNotBlank() &&
-            word.definition.isNotBlank() &&
-            word.partOfSpeech.isNotBlank()
+        val validWords = words.filter {
+            it.word.isNotBlank() &&
+            it.definition.isNotBlank()
         }
         
         if (validWords.isEmpty()) {

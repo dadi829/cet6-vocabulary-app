@@ -39,7 +39,7 @@ class WordViewModel(private val repository: WordRepository) : ViewModel() {
 
     fun loadVocabularyList() {
         viewModelScope.launch {
-            repository.getVocabularyListWords().collect {
+            repository.getAllWords().collect {
                 _vocabularyList.value = it
             }
         }
@@ -48,8 +48,10 @@ class WordViewModel(private val repository: WordRepository) : ViewModel() {
     fun loadReviewWords() {
         viewModelScope.launch {
             val currentTime = System.currentTimeMillis()
-            repository.getWordsForReview(currentTime).collect {
-                _reviewWords.value = it
+            repository.getAllWords().collect { allWords ->
+                // 过滤出需要复习的单词：nextReviewAt <= currentTime 或 nextReviewAt为null
+                val reviewWords = allWords.filter { it.nextReviewAt == null || it.nextReviewAt <= currentTime }
+                _reviewWords.value = reviewWords
             }
         }
     }
